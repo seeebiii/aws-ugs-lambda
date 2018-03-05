@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Deploys a small stack of Lambda functions, S3 bucket and DynamoDB.
+
+
+Resources:
+  SimpleScheduledFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      ###
+      ### use different handler function for differentiation
+      ###
+      Handler: index.scheduled
+      Runtime: nodejs6.10
+      CodeUri: ./
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - S3CrudPolicy:
+            BucketName: !Ref DataBucket
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref DataBucket
+      Events:
+        Scheduled:
+          Type: Schedule
+          Properties:
+            # triggered every 10 minutes - use cron as an alternative
+            Schedule: rate(10 minutes)
+
+
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'aws-ugs-lambda-data-bucket'
+
+
+  ###
+  ### Add new SAM function to listen to S3 updates
+  ###
+  S3ListenerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      ###
+      ### use different handler function for differentiation
+      ###
+      Handler: index.listener
+      Runtime: nodejs6.10
+      CodeUri: ./
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        ###
+        ### Use policy to get access to DynamoDB table
+        ###
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DataStore
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DataStore
+      Events:
+        S3Update:
+          Type: S3
+          Properties:
+            Bucket: !Ref DataBucket
+            Events: s3:ObjectCreated:*
+
+
+  ###
+  ### Create DynamoDB table
+  ###
+  DataStore:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: 'aws-ugs-lambda-data-store'
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1

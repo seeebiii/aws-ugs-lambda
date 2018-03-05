@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Deploys a AWS Lambda function and a S3 bucket using SAM.
+
+
+Resources:
+  SimpleScheduledFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs6.10
+      CodeUri: ./
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        ###
+        ### Add managed policy to have CRUD permissions on bucket
+        ###
+        - S3CrudPolicy:
+            BucketName: !Ref DataBucket
+      ###
+      ### Add bucket name as environment variable to use it in code later
+      ###
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref DataBucket
+      Events:
+        Scheduled:
+          Type: Schedule
+          Properties:
+            # triggered every 10 minutes - use cron as an alternative
+            Schedule: rate(10 minutes)
+
+
+  ###
+  ### Declare a bucket
+  ###
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'aws-ugs-lambda-data-bucket'

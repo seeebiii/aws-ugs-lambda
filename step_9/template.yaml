@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Deploys a small stack of Lambda functions, S3 bucket and DynamoDB.
+
+
+Outputs:
+  ApiUrl:
+    Description: Base url for backend.
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/counter
+
+
+###
+### Adds global properties which are shared across Lambda functions
+###
+Globals:
+  Function:
+    Runtime: nodejs6.10
+    Timeout: 10
+    CodeUri: ./target
+    Environment:
+      Variables:
+        DATA_BUCKET: !Ref DataBucket
+
+
+Resources:
+  SimpleScheduledFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.scheduled
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - S3CrudPolicy:
+            BucketName: !Ref DataBucket
+      Events:
+        Scheduled:
+          Type: Schedule
+          Properties:
+            # triggered every 10 minutes - use cron as an alternative
+            Schedule: rate(10 minutes)
+
+  S3ListenerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.listener
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DataStore
+      Events:
+        S3Update:
+          Type: S3
+          Properties:
+            Bucket: !Ref DataBucket
+            Events: s3:ObjectCreated:*
+
+  SimpleApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.api
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DataStore
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /counter
+            Method: GET
+
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'aws-ugs-lambda-data-bucket'
+
+  DataStore:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: 'aws-ugs-lambda-data-store'
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1

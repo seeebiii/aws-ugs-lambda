@@ -58,6 +58,11 @@ The same setup can be used for Java Lambda functions.
 Global properties are shared between all functions.
 In this example it saves 10% of the template size in `template.yaml`.
 This is especially useful for environment variables, so you don't miss some important ones.
+10. [step_10](./step_10) changes the packaging and deployment steps.
+It's using SAM local now.
+SAM local provides the commands `sam package` and `sam deploy` to package your artifacts and deploy your stack.
+Under the hood it's the same as `aws cloudformation package` and `aws cloudformation deploy`.
+Take a look at `deploy.sh` and execute it.
 
 
 ## License

@@ -1,0 +1,20 @@
+{
+  "name": "AWS-Lambda-Register-To-Kinesis",
+  "version": "1.0.0",
+  "author": "Sebastian Hesse",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rimraf target",
+    "build": "yarn run clean && mkdirp target && yarn run build:b",
+    "build:b": "browserify src/index.js --node -s default -o target/index.js",
+    "watch": "yarn run clean && mkdirp target && yarn run build:b && chokidar './src/*.js' -c 'yarn run build:b'"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.205.0",
+    "browserify": "^16.1.1",
+    "chokidar-cli": "^1.2.0",
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.6.2"
+  }
+}

@@ -9,6 +9,11 @@ Source code for my talk at AWS UserGroup in Stuttgart, 8.3.2018
 It requires that you set `LAMBDA_BUCKET` as (environment) variable which is used to upload the Lambda artifact.
 
 
+## Preparation
+1. Install AWS SDK: `npm install -g aws-sdk`
+2. Install SAM Local: `npm install -g aws-sam-local`
+
+
 ## Steps
 1. [step_1](./step_1) contains a simple Lambda function written in NodeJS.
 It is deployed using Serverless Application Model (SAM).

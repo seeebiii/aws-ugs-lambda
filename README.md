@@ -14,11 +14,17 @@ It requires that you set `LAMBDA_BUCKET` as (environment) variable which is used
 2. Install SAM Local: `npm install -g aws-sam-local`
 
 
+## Quick Start
+[step_10](./step_10) contains the final stack. Just deploy the whole stack by executing `step_10/deploy.sh`.
+
+
 ## Steps
 1. [step_1](./step_1) contains a simple Lambda function written in NodeJS.
 It is deployed using Serverless Application Model (SAM).
 The Lambda function is scheduled and executed each 10 minutes.
 Deploy the example stack using `./deploy.sh`.
+A deployment script could also be done by writing a NodeJS script using the AWS SDK.
+In this simple example it's not necessary, but as soon as your stack grows, you might consider an alternative to a bash script.
 2. [step_2](./step_2) adds a S3 bucket - the Lambda function gets CRUD permissions to access the bucket.
 Hence, the `template.yaml` contains more resources which should be deployed.
 The template is using the new `managed policies` features of SAM, i.e. `S3CrudPolicy` in this case.
@@ -31,6 +37,7 @@ Deploy the example stack using `./deploy.sh`.
 It will update a counter in a DynamoDB table to count the files in S3 bucket.
 In order to support multiple handler functions, a `index.js` file was introduced which bundles the single handler functions.
 Now, the handler functions are referenced using `index.handlerFunction` in `template.yaml`.
+This isn't necessary, but a good practice to keep things seperated.
 Deploy the example stack using `./deploy.sh`.
 5. [step_5](./step_5) adds a Lambda function which is used as an API.
 It retrieves the counter from DynamoDB and returns a JSON response when accessing `/counter`.
@@ -40,6 +47,7 @@ The deploy script will output the URL to access the API.
 Take a look at `start-sam-local.sh` and execute the single steps.
 It requires that you use local environment variables and set a region for working with DynamoDB.
 You can live-edit your API Lambda functions (e.g. `api.js`) and SAM local will directly read the updated file for the next request.
+You can even add a debugger to your code using `-d <port>` as an argument for a SAM local command.
 7. [step_7](./step_7) introduces the invocation of the scheduled Lambda function using SAM local.
 For that, you can generate an example event using `generate-events.sh`.
 This script executes the necessary steps to call the scheduled Lambda function in an appropriate way.
@@ -58,10 +66,12 @@ The same setup can be used for Java Lambda functions.
 Global properties are shared between all functions.
 In this example it saves 10% of the template size in `template.yaml`.
 This is especially useful for environment variables, so you don't miss some important ones.
+However, please take care that you can't use SAM local with this approach anymore - not supported yet.
 10. [step_10](./step_10) changes the packaging and deployment steps.
 It's using SAM local now.
 SAM local provides the commands `sam package` and `sam deploy` to package your artifacts and deploy your stack.
 Under the hood it's the same as `aws cloudformation package` and `aws cloudformation deploy`.
+You can also use `sam validate` to make sure your template is valid according to SAM.
 Take a look at `deploy.sh` and execute it.
 
 
